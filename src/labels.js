@@ -1,7 +1,7 @@
 const labels = [
     {
         id: 1,
-        name: 'Design',
+        name: 'design',
     },
     {
         id: 2,

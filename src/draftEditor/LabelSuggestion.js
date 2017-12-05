@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-class LabelEntry extends React.Component {
+class LabelSuggestion extends React.Component {
     renderCreateNew() {
         const { mention, searchValue, ...parentProps } = this.props;
         return (
@@ -19,7 +19,7 @@ class LabelEntry extends React.Component {
             isFocused, // eslint-disable-line no-unused-vars
             ...parentProps
         } = this.props;
-
+        console.log(mention.get('name'), mention.get('inUse'));
         return (
             <div key={mention.get('id')} {...parentProps}>
                 <div className={theme.mentionSuggestionsEntryContainer}>
@@ -35,23 +35,23 @@ class LabelEntry extends React.Component {
 
     render() {
         const { mention } = this.props;
-        if (mention.get('id') === -1) {
+        if (mention.get('new')) {
             return this.renderCreateNew();
         }
         return this.renderLabel();
     }
 }
 
-LabelEntry.propTypes = {
+LabelSuggestion.propTypes = {
     mention: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
     searchValue: PropTypes.string, // eslint-disable-line no-unused-vars
     isFocused: PropTypes.bool, // eslint-disable-line no-unused-vars
 };
 
-LabelEntry.defaultProps = {
+LabelSuggestion.defaultProps = {
     searchValue: undefined,
     isFocused: false,
 };
 
-export default LabelEntry;
+export default LabelSuggestion;

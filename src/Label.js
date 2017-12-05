@@ -2,8 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 class Label extends React.Component {
-    onClick = () => {
-        this.props.onClick(this.props.label);
+    onRemove = () => {
+        this.props.onRemove(this.props.label);
     }
 
     render() {
@@ -13,7 +13,7 @@ class Label extends React.Component {
         const { label } = this.props;
         return (
             <div style={style}>
-                <span onKeyPress={this.onRemoveLabel} onClick={this.onRemoveLabel} key={label.id}>{label.name}</span>
+                <span onKeyPress={this.onRemove} onClick={this.onRemove} key={label.id}>{label.name}</span>
             </div>
         );
     }
@@ -21,7 +21,7 @@ class Label extends React.Component {
 
 Label.propTypes = {
     label: PropTypes.object.isRequired,
-    onClick: PropTypes.func.isRequired,
+    onRemove: PropTypes.func.isRequired,
 };
 
 Label.defaultProps = {

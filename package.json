@@ -38,6 +38,7 @@
     "draft-js-emoji-plugin": "2.0.1",
     "draft-js-mention-plugin": "2.0.1",
     "draft-js-plugins-editor": "2.0.3",
+    "immutability-helper": "^2.5.1",
     "immutable": "^3.8.2",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
