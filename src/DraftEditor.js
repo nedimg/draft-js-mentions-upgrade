@@ -74,6 +74,8 @@ class DraftEditor extends React.Component {
         const { id, name } = labelObject;
         if (id === -1 && typeof this.props.onCreateLabel === 'function') {
             this.props.onCreateLabel(name);
+        } else if (typeof this.props.onLabel === 'function') {
+            this.props.onLabel(labelObject);
         }
     }
 
@@ -136,6 +138,7 @@ class DraftEditor extends React.Component {
 
 DraftEditor.propTypes = {
     // onChange: PropTypes.func,
+    onLabel: PropTypes.func,
     onCreateLabel: PropTypes.func,
     mentions: PropTypes.array,
     labels: PropTypes.array,
@@ -145,6 +148,7 @@ DraftEditor.propTypes = {
 
 DraftEditor.defaultProps = {
     onCreateLabel: undefined,
+    onLabel: undefined,
     mentions: [],
     labels: [],
     rawContent: undefined,
