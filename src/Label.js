@@ -8,7 +8,7 @@ class Label extends React.Component {
 
     render() {
         const style = {
-            display: 'flex', marginRight: 4, padding: '4px 8px', borderRadius: 3, backgroundColor: '#f2f2f2',
+            display: 'flex', marginRight: 4, padding: '4px 8px', borderRadius: 3, backgroundColor: '#f2f2f2', cursor: 'pointer',
         };
         const { label } = this.props;
         return (

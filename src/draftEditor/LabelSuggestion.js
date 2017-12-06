@@ -1,31 +1,44 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import { connect } from 'react-redux';
+
 class LabelSuggestion extends React.Component {
+    createNewLabel = () => {
+        const { mention, searchValue } = this.props;
+        this.props.createNewLabel({
+            id: mention.get('id'),
+            name: searchValue,
+        });
+    }
+
     renderCreateNew() {
-        const { mention, searchValue, ...parentProps } = this.props;
+        const { searchValue, ...parentProps } = this.props;
+
+        delete parentProps.dispatch;
+        delete parentProps.isFocused;
+
         return (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} key={mention.get('id')} {...parentProps}>
+            <button style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} onMouseDown={this.createNewLabel}>
                 + Create &quot;<strong>{searchValue}</strong>&quot;
-            </div>
+            </button>
         );
     }
 
     renderLabel() {
-        const {
-            mention,
-            theme,
-            searchValue, // eslint-disable-line no-unused-vars
-            isFocused, // eslint-disable-line no-unused-vars
-            ...parentProps
-        } = this.props;
-        // console.log(mention.get('name'), mention.get('inUse'));
+        const { label, theme, ...parentProps } = this.props;
+
+        delete parentProps.dispatch;
+        delete parentProps.searchValue;
+        delete parentProps.isFocused;
+        delete parentProps.createNewLabel;
+
         return (
-            <div key={mention.get('name')} {...parentProps}>
+            <div key={label.id} {...parentProps}>
                 <div className={theme.mentionSuggestionsEntryContainer}>
                     <div className={theme.mentionSuggestionsEntryContainerRight}>
                         <div className={theme.mentionSuggestionsEntryText}>
-                            {mention.get('name')}
+                            {label.name}
                         </div>
                     </div>
                 </div>
@@ -34,17 +47,16 @@ class LabelSuggestion extends React.Component {
     }
 
     render() {
-        const { mention } = this.props;
-        if (mention.get('new')) {
-            return this.renderCreateNew();
-        }
-        return this.renderLabel();
+        const { label } = this.props;
+        return label ? this.renderLabel() : this.renderCreateNew();
     }
 }
 
 LabelSuggestion.propTypes = {
+    createNewLabel: PropTypes.func.isRequired,
     mention: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
+    label: PropTypes.object,
     searchValue: PropTypes.string, // eslint-disable-line no-unused-vars
     isFocused: PropTypes.bool, // eslint-disable-line no-unused-vars
 };
@@ -52,6 +64,20 @@ LabelSuggestion.propTypes = {
 LabelSuggestion.defaultProps = {
     searchValue: undefined,
     isFocused: false,
+    label: undefined,
 };
 
-export default LabelSuggestion;
+const mapStateToProps = (state, ownProps) => {
+    const { mention } = ownProps;
+    const label = state.labels.byId[mention.get('id')];
+    return {
+        label,
+    };
+};
+
+const mapDispatchToProps = dispatch => ({
+    createNewLabel: label => dispatch({ type: 'CREATE', payload: label }),
+});
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(LabelSuggestion);

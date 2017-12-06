@@ -1,35 +1,33 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Entity } from 'draft-js';
+import { connect } from 'react-redux';
 
-class LabelMention extends React.Component {
-    onCreateNewClick = () => {
-        console.log('aaaaaaaaaaaaa');
-    }
-    render() {
-        const { mention } = this.props;
-        // console.log(mention.get('name'), mention.get('inUse'));
-        // const aaa = Entity.get(entityKey);
-        // console.log(aaa);
-        const style = {
-            backgroundColor: mention.get('inUse') ? '#f76072' : '#f2f2f2',
-        };
-        return (
-            <span style={style}>
-                {this.props.children}
-                {/* #{mention.get('name') */}
-            </span>
-        );
-    }
-}
+const LabelMention = props => {
+    const { label, inUse } = props;
+    const style = {
+        backgroundColor: inUse ? '#f76072' : '#f2f2f2',
+    };
+    return (
+        <span style={style}>
+            #{label.name}
+        </span>
+    );
+};
 
 LabelMention.propTypes = {
-    children: PropTypes.array,
-    mention: PropTypes.object.isRequired,
+    label: PropTypes.object.isRequired,
+    inUse: PropTypes.bool.isRequired,
 };
 
-LabelMention.defaultProps = {
-    children: [],
+const mapStateToProps = (state, ownProps) => {
+    const { mention } = ownProps;
+    const mentionId = mention.get('id');
+    const label = state.labels.byId[mentionId];
+    const inUse = state.labels.usedLabels.find(l => l === mentionId) !== undefined;
+    return {
+        label,
+        inUse,
+    };
 };
 
-export default LabelMention;
+export default connect(mapStateToProps)(LabelMention);

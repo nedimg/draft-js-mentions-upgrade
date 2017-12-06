@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { fromJS, Map } from 'immutable';
+import { fromJS } from 'immutable';
+import { connect } from 'react-redux';
+import uuid from 'js-uuid';
 
 import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
@@ -36,37 +38,24 @@ class DraftEditor extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let { labelSuggestions } = this.state;
-        labelSuggestions = fromJS(nextProps.labelSuggestions);
-        const rawContent = this.getRawContent();
-        Object.keys(rawContent.entityMap).forEach(key => {
-            const entity = rawContent.entityMap[key];
-            if (entity.type === '#mention') {
-                const label = nextProps.labelsInUse.find(l => l.name === entity.data.mention.get('name'));
-                console.log(key, label);
-            }
-        });
-
         this.setState({
-            labelSuggestions,
+            labelSuggestions: fromJS(nextProps.labelSuggestions),
             mentionSuggestions: fromJS(nextProps.mentionSuggestions),
         });
     }
 
     onSearchLabelsChange = ({ value }) => {
-        let labelSuggestions = suggestionsFilter(value, fromJS(this.props.labelSuggestions));
-        const hasNoExactMatch = labelSuggestions.toJS().find(item => (item.name === value)) === undefined;
-        if (hasNoExactMatch && labelSuggestions.size < 2) {
-            // add a 'dummy' item flagged with new=true only when there is no exact match
-            // and there is less then two suggestions
-            labelSuggestions = labelSuggestions.set(labelSuggestions.size, fromJS({
-                name: value,
-                inUse: true,
-                new: true,
-            }));
+        const filteredLabels = suggestionsFilter(value, this.props.labels);
+
+        const hasNoExactMatch = filteredLabels.find(label => (label.name === value)) === undefined;
+
+        if (hasNoExactMatch && filteredLabels.length < 3) {
+            // push a new label suggestion (CREATE)
+            filteredLabels.push({ id: uuid.v4() });
         }
+
         this.setState({
-            labelSuggestions,
+            labelSuggestions: fromJS(filteredLabels.map(label => ({ id: label.id }))),
         });
     }
 
@@ -91,11 +80,9 @@ class DraftEditor extends React.Component {
 
     onAddLabel = label => {
         const labelObject = label.toObject();
-        delete labelObject.new;
-        this.label = labelObject;
-        // if (typeof this.props.onLabel === 'function') {
-        // this.props.onLabel(labelObject);
-        // }
+        if (typeof this.props.onLabel === 'function') {
+            this.props.onLabel(labelObject);
+        }
     }
 
     getRawContent = () => convertToRaw(this.editor.getEditorState().getCurrentContent());
@@ -173,7 +160,7 @@ DraftEditor.propTypes = {
     onLabel: PropTypes.func,
     mentionSuggestions: PropTypes.array,
     labelSuggestions: PropTypes.array,
-    labelsInUse: PropTypes.array,
+    labels: PropTypes.array,
     rawContent: PropTypes.object,
     placeholder: PropTypes.string,
 };
@@ -182,9 +169,20 @@ DraftEditor.defaultProps = {
     onLabel: undefined,
     mentionSuggestions: [],
     labelSuggestions: [],
-    labelsInUse: [],
+    labels: [],
     rawContent: undefined,
     placeholder: 'Say something...',
 };
 
-export default DraftEditor;
+const mapStateToProps = state => {
+    const allLabels = Object.values(state.labels.byId);
+    const labelSuggestions = allLabels.map(l => ({ id: l.id }));
+    const labels = allLabels.map(l => ({ ...l }));
+
+    return {
+        labels,
+        labelSuggestions,
+    };
+};
+
+export default connect(mapStateToProps, null, null, { withRef: true })(DraftEditor);
