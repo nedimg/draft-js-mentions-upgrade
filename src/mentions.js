@@ -29,6 +29,21 @@ const mentions = [
         link: 'https://twitter.com/psbrandt',
         avatar: 'https://pbs.twimg.com/profile_images/688487813025640448/E6O6I011_400x400.png',
     },
+    {
+        name: 'Pascal Brandt 1',
+        link: 'https://twitter.com/psbrandt1',
+        avatar: 'https://pbs.twimg.com/profile_images/688487813025640448/E6O6I011_400x400.png',
+    },
+    {
+        name: 'Pascal Brandt 2',
+        link: 'https://twitter.com/psbrandt2',
+        avatar: 'https://pbs.twimg.com/profile_images/688487813025640448/E6O6I011_400x400.png',
+    },
+    {
+        name: 'Pascal Brandt 3',
+        link: 'https://twitter.com/psbrandt3',
+        avatar: 'https://pbs.twimg.com/profile_images/688487813025640448/E6O6I011_400x400.png',
+    },
 ];
 
 export default mentions;

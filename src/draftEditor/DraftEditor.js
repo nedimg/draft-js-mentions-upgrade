@@ -1,13 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { fromJS } from 'immutable';
-// import update from 'immutability-helper';
+import { fromJS, Map } from 'immutable';
 
-import { EditorState, convertFromRaw } from 'draft-js';
+import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
-import createMentionPlugin, { defaultSuggestionsFilter } from 'draft-js-mention-plugin';
+import createMentionPlugin from 'draft-js-mention-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
 
+import suggestionsFilter from './suggestionsFilter';
 import LabelMention from './LabelMention';
 import LabelSuggestion from './LabelSuggestion';
 
@@ -36,19 +36,16 @@ class DraftEditor extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        /*
-        const labelSuggestions = nextProps.labelSuggestions.map(labelMention => {
-            // extend label suggestion with `inUse` flag
-            const label = { ...labelMention };
-            label.inUse = nextProps.labelsInUse.find(l => l.id === label.id) !== undefined;
-            return label;
-        });
-*/
         let { labelSuggestions } = this.state;
-        labelSuggestions = labelSuggestions.update(
-            labelSuggestions.findIndex(item => item.get('id') === 1),
-            item => item.set('name', 'aaaaaaaaaaaaaa'),
-        );
+        labelSuggestions = fromJS(nextProps.labelSuggestions);
+        const rawContent = this.getRawContent();
+        Object.keys(rawContent.entityMap).forEach(key => {
+            const entity = rawContent.entityMap[key];
+            if (entity.type === '#mention') {
+                const label = nextProps.labelsInUse.find(l => l.name === entity.data.mention.get('name'));
+                console.log(key, label);
+            }
+        });
 
         this.setState({
             labelSuggestions,
@@ -57,14 +54,16 @@ class DraftEditor extends React.Component {
     }
 
     onSearchLabelsChange = ({ value }) => {
-        let labelSuggestions = defaultSuggestionsFilter(value, fromJS(this.props.labelSuggestions));
-
-        if (!labelSuggestions.size) {
-            labelSuggestions = fromJS([{
-                id: new Date().getTime(),
+        let labelSuggestions = suggestionsFilter(value, fromJS(this.props.labelSuggestions));
+        const hasNoExactMatch = labelSuggestions.toJS().find(item => (item.name === value)) === undefined;
+        if (hasNoExactMatch && labelSuggestions.size < 2) {
+            // add a 'dummy' item flagged with new=true only when there is no exact match
+            // and there is less then two suggestions
+            labelSuggestions = labelSuggestions.set(labelSuggestions.size, fromJS({
                 name: value,
+                inUse: true,
                 new: true,
-            }]);
+            }));
         }
         this.setState({
             labelSuggestions,
@@ -72,7 +71,7 @@ class DraftEditor extends React.Component {
     }
 
     onSearchChange = ({ value }) => {
-        const mentionSuggestions = defaultSuggestionsFilter(value, fromJS(this.props.mentionSuggestions));
+        const mentionSuggestions = suggestionsFilter(value, fromJS(this.props.mentionSuggestions));
 
         this.setState({
             mentionSuggestions,
@@ -81,16 +80,25 @@ class DraftEditor extends React.Component {
 
     onChange = editorState => {
         this.setState({ editorState });
+
+        if (typeof this.props.onLabel === 'function') {
+            if (this.label) {
+                this.props.onLabel(this.label);
+                delete this.label;
+            }
+        }
     }
 
     onAddLabel = label => {
         const labelObject = label.toObject();
         delete labelObject.new;
-
-        if (typeof this.props.onLabel === 'function') {
-            this.props.onLabel(labelObject);
-        }
+        this.label = labelObject;
+        // if (typeof this.props.onLabel === 'function') {
+        // this.props.onLabel(labelObject);
+        // }
     }
+
+    getRawContent = () => convertToRaw(this.editor.getEditorState().getCurrentContent());
 
     focus = () => {
         this.editor.focus();
@@ -108,7 +116,22 @@ class DraftEditor extends React.Component {
 
     renderLabelSuggestions() {
         const { MentionSuggestions } = this._labelPlugin;
-        console.log(this.state.labelSuggestions.toJS());
+        // console.log(this.state.labelSuggestions.toJS().length);
+        /*
+        let { labelSuggestions } = this.state;
+        if (labelSuggestions.size > 3) {
+            console.log('do the update');
+            labelSuggestions = labelSuggestions.update(
+                labelSuggestions.findIndex(item => item.get('name') === 'design'),
+                item => item.set('inUse', true),
+            );
+            this.editor
+                .getEditorState()
+                .getCurrentContent()
+                .getEntityMap()
+                .replaceData('1', { mention: fromJS({ name: 'design', inUse: true }) });
+        }
+        */
         return (
             <MentionSuggestions
                 onSearchChange={this.onSearchLabelsChange}
@@ -150,7 +173,7 @@ DraftEditor.propTypes = {
     onLabel: PropTypes.func,
     mentionSuggestions: PropTypes.array,
     labelSuggestions: PropTypes.array,
-    // labelsInUse: PropTypes.array,
+    labelsInUse: PropTypes.array,
     rawContent: PropTypes.object,
     placeholder: PropTypes.string,
 };
@@ -159,7 +182,7 @@ DraftEditor.defaultProps = {
     onLabel: undefined,
     mentionSuggestions: [],
     labelSuggestions: [],
-    // labelsInUse: [],
+    labelsInUse: [],
     rawContent: undefined,
     placeholder: 'Say something...',
 };

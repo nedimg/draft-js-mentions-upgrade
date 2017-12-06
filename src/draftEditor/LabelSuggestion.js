@@ -19,9 +19,9 @@ class LabelSuggestion extends React.Component {
             isFocused, // eslint-disable-line no-unused-vars
             ...parentProps
         } = this.props;
-        console.log(mention.get('name'), mention.get('inUse'));
+        // console.log(mention.get('name'), mention.get('inUse'));
         return (
-            <div key={mention.get('id')} {...parentProps}>
+            <div key={mention.get('name')} {...parentProps}>
                 <div className={theme.mentionSuggestionsEntryContainer}>
                     <div className={theme.mentionSuggestionsEntryContainerRight}>
                         <div className={theme.mentionSuggestionsEntryText}>
