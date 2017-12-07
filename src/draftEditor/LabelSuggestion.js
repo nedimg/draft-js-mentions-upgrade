@@ -4,12 +4,13 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 class LabelSuggestion extends React.Component {
-    createNewLabel = () => {
+    createNewLabel = e => {
         const { mention, searchValue } = this.props;
         this.props.createNewLabel({
-            id: mention.get('id'),
+            id: mention.get('name'),
             name: searchValue,
         });
+        this.props.onMouseDown(e);
     }
 
     renderCreateNew() {
@@ -19,7 +20,7 @@ class LabelSuggestion extends React.Component {
         delete parentProps.isFocused;
 
         return (
-            <button style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} onMouseDown={this.createNewLabel}>
+            <button style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} {...parentProps} onMouseDown={this.createNewLabel}>
                 + Create &quot;<strong>{searchValue}</strong>&quot;
             </button>
         );
@@ -54,6 +55,7 @@ class LabelSuggestion extends React.Component {
 
 LabelSuggestion.propTypes = {
     createNewLabel: PropTypes.func.isRequired,
+    onMouseDown: PropTypes.func.isRequired,
     mention: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
     label: PropTypes.object,
@@ -69,7 +71,7 @@ LabelSuggestion.defaultProps = {
 
 const mapStateToProps = (state, ownProps) => {
     const { mention } = ownProps;
-    const label = state.labels.byId[mention.get('id')];
+    const label = state.labels.byId[mention.get('name')];
     return {
         label,
     };

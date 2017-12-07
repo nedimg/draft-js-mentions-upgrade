@@ -26,6 +26,7 @@ class DraftEditor extends React.Component {
             mentionPrefix: '#',
             mentionTrigger: '#',
             mentionComponent: LabelMention,
+            entityMutability: 'IMMUTABLE',
         });
 
         this._plugins = [this._mentionPlugin, this._labelPlugin, this._emojiPlugin];
@@ -35,6 +36,28 @@ class DraftEditor extends React.Component {
             mentionSuggestions: fromJS(props.mentionSuggestions),
             labelSuggestions: fromJS(props.labelSuggestions),
         };
+    }
+
+    componentDidUpdate() {
+        /*
+        const entityMap = this.editor
+            .getEditorState()
+            .getCurrentContent()
+            .getEntityMap();
+       // console.log(entityMap);
+        const raw = this.getRawContent();
+       // console.log(raw);
+        try {
+            Object.keys(raw.entityMap).forEach(key => {
+                // console.log(entityMap.get(key));
+                entityMap.replaceData(key, { mention: fromJS({ name: 'aaaaa' }) });
+            });
+        } catch (error) {
+            console.log(error);
+        }
+       
+        // 
+        */
     }
 
     componentWillReceiveProps(nextProps) {
@@ -55,7 +78,7 @@ class DraftEditor extends React.Component {
         }
 
         this.setState({
-            labelSuggestions: fromJS(filteredLabels.map(label => ({ id: label.id }))),
+            labelSuggestions: fromJS(filteredLabels.map(l => ({ name: l.id }))),
         });
     }
 
@@ -70,12 +93,7 @@ class DraftEditor extends React.Component {
     onChange = editorState => {
         this.setState({ editorState });
 
-        if (typeof this.props.onLabel === 'function') {
-            if (this.label) {
-                this.props.onLabel(this.label);
-                delete this.label;
-            }
-        }
+        console.log(this.getRawContent());
     }
 
     onAddLabel = label => {
@@ -85,7 +103,12 @@ class DraftEditor extends React.Component {
         }
     }
 
-    getRawContent = () => convertToRaw(this.editor.getEditorState().getCurrentContent());
+    getRawContent = () => {
+        if (this.editor) {
+            return convertToRaw(this.editor.getEditorState().getCurrentContent());
+        }
+        return undefined;
+    }
 
     focus = () => {
         this.editor.focus();
@@ -103,20 +126,15 @@ class DraftEditor extends React.Component {
 
     renderLabelSuggestions() {
         const { MentionSuggestions } = this._labelPlugin;
-        // console.log(this.state.labelSuggestions.toJS().length);
         /*
-        let { labelSuggestions } = this.state;
-        if (labelSuggestions.size > 3) {
-            console.log('do the update');
-            labelSuggestions = labelSuggestions.update(
-                labelSuggestions.findIndex(item => item.get('name') === 'design'),
-                item => item.set('inUse', true),
-            );
+        try {
             this.editor
                 .getEditorState()
                 .getCurrentContent()
                 .getEntityMap()
-                .replaceData('1', { mention: fromJS({ name: 'design', inUse: true }) });
+                .replaceData('0', { mention: fromJS({ id: 'sasaas', name: 'designnn3' }) }); 
+        } catch (error) {
+            console.log(error);
         }
         */
         return (
@@ -176,7 +194,7 @@ DraftEditor.defaultProps = {
 
 const mapStateToProps = state => {
     const allLabels = Object.values(state.labels.byId);
-    const labelSuggestions = allLabels.map(l => ({ id: l.id }));
+    const labelSuggestions = allLabels.map(l => ({ name: l.id }));
     const labels = allLabels.map(l => ({ ...l }));
 
     return {
