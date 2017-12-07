@@ -4,7 +4,7 @@ import { fromJS } from 'immutable';
 import { connect } from 'react-redux';
 import uuid from 'js-uuid';
 
-import { EditorState, convertFromRaw, convertToRaw } from 'draft-js';
+import { EditorState, convertFromRaw, convertToRaw, SelectionState, Modifier, Entity } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import createMentionPlugin from 'draft-js-mention-plugin';
 import createEmojiPlugin from 'draft-js-emoji-plugin';
@@ -16,6 +16,16 @@ import LabelSuggestion from './LabelSuggestion';
 import 'draft-js-mention-plugin/lib/plugin.css';
 import 'draft-js-emoji-plugin/lib/plugin.css';
 
+const findWithRegex = (regex, contentBlock, callback) => {
+    const text = contentBlock.getText();
+    let matchArr, start, end;
+    while ((matchArr = regex.exec(text)) !== null) { // eslint-disable-line
+        start = matchArr.index;
+        end = start + matchArr[0].length;
+        callback(start, end);
+    }
+};
+
 class DraftEditor extends React.Component {
     constructor(props) {
         super(props);
@@ -25,7 +35,7 @@ class DraftEditor extends React.Component {
         this._labelPlugin = createMentionPlugin({
             mentionPrefix: '#',
             mentionTrigger: '#',
-            mentionComponent: LabelMention,
+            // mentionComponent: LabelMention,
             entityMutability: 'IMMUTABLE',
         });
 
@@ -43,6 +53,10 @@ class DraftEditor extends React.Component {
             labelSuggestions: fromJS(nextProps.labelSuggestions),
             mentionSuggestions: fromJS(nextProps.mentionSuggestions),
         });
+    }
+
+    componentDidUpdate() {
+        console.log(this.getRawContent());
     }
 
     onSearchLabelsChange = ({ value }) => {
@@ -101,6 +115,96 @@ class DraftEditor extends React.Component {
         this.editor.focus();
     }
 
+    doTest = () => {
+        const labelPrefix = '#';
+        const label = {
+            id: 'a',
+            name: 'novi_label',
+        };
+
+        const editorState = this.editor.getEditorState();
+        let contentState = editorState.getCurrentContent();
+        const blockMap = contentState.getBlockMap();
+
+        const selectionsToReplace = [];
+
+        const regex = new RegExp(`${labelPrefix}${label.id}`, 'g');
+
+        blockMap.forEach(contentBlock => (
+
+            const text = contentBlock.getText();
+            let matchArr, start, end;
+            while ((matchArr = regex.exec(text)) !== null) { // eslint-disable-line
+                start = matchArr.index;
+                end = start + matchArr[0].length;
+                callback(start, end);
+            }
+
+            findWithRegex(regex, contentBlock, (start, end) => {
+                const blockKey = contentBlock.getKey();
+                // create selection of regex match
+                const blockTextSelection = SelectionState
+                    .createEmpty(blockKey)
+                    .merge({
+                        anchorOffset: start,
+                        focusOffset: end,
+                    });
+                // replace the block's text
+                contentState = Modifier.replaceText(
+                    contentState,
+                    blockTextSelection,
+                    `${labelPrefix}${label.name}`,
+                );
+
+                const entityKey = Entity.create(
+                    '#mention',
+                    'IMMUTABLE',
+                    { mention: fromJS({ id: label.id }) }
+                );
+
+                const newSelection = SelectionState
+                    .createEmpty(blockKey)
+                    .merge({
+                        anchorOffset: start,
+                        focusOffset: end + (label.name.length - 1),
+                    });
+
+                contentState = Modifier.applyEntity(
+                    contentState,
+                    newSelection,
+                    entityKey
+                );
+            })
+        ));
+        /*
+        selectionsToReplace.forEach(selectionState => {
+            contentState = Modifier.replaceText(
+                contentState,
+                selectionState,
+                `${labelPrefix}${label.name}`,
+            );
+
+            const entityKey = Entity.create(
+                '#mention',
+                'IMMUTABLE',
+                { mention: fromJS({ id: label.id }) }
+            );
+
+            contentState = Modifier.applyEntity(
+                contentState,
+                newSelection,
+                entityKey
+            );
+        });
+*/
+        this.setState({
+            editorState: EditorState.push(
+                editorState,
+                contentState,
+            ),
+        });
+    }
+
     renderMentionSuggestions() {
         const { MentionSuggestions } = this._mentionPlugin;
         return (
@@ -143,18 +247,22 @@ class DraftEditor extends React.Component {
         const style1 = {
             display: 'flex', flexDirection: 'column', width: 300, height: 300, padding: 10, border: '1px solid #efefef',
         };
+
         return (
-            <div style={style1}>
-                <Editor
-                    editorState={this.state.editorState}
-                    onChange={this.onChange}
-                    plugins={this._plugins}
-                    placeholder={this.props.placeholder}
-                    ref={element => { this.editor = element; }}
-                />
-                {this.renderEmojiSuggestions()}
-                {this.renderMentionSuggestions()}
+            <div>
+                <div style={style1}>
+                    <Editor
+                        editorState={this.state.editorState}
+                        onChange={this.onChange}
+                        plugins={this._plugins}
+                        placeholder={this.props.placeholder}
+                        ref={element => { this.editor = element; }}
+                    />
+                    {this.renderEmojiSuggestions()}
+                    {this.renderMentionSuggestions()}
+                </div>
                 {this.renderLabelSuggestions()}
+                <button onClick={this.doTest}>TEST</button>
             </div>
         );
     }
