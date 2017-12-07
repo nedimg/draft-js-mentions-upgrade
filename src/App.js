@@ -12,7 +12,7 @@ class App extends React.Component {
         this.state = {};
     }
 
-    onLabelAdded = ({ name: id }) => {
+    onLabelAdded = id => {
         console.log('onLabelAdded', id);
         /*
         const { current } = this.state;
@@ -26,7 +26,7 @@ class App extends React.Component {
         this.props.doLabel(id);
     }
 
-    onLabelRemoved = ({ name: id }) => {
+    onLabelRemoved = ({ id }) => {
         this.props.doUnlabel(id);
         /*
         const { current } = this.state;

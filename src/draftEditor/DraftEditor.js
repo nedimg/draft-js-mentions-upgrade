@@ -38,28 +38,6 @@ class DraftEditor extends React.Component {
         };
     }
 
-    componentDidUpdate() {
-        /*
-        const entityMap = this.editor
-            .getEditorState()
-            .getCurrentContent()
-            .getEntityMap();
-       // console.log(entityMap);
-        const raw = this.getRawContent();
-       // console.log(raw);
-        try {
-            Object.keys(raw.entityMap).forEach(key => {
-                // console.log(entityMap.get(key));
-                entityMap.replaceData(key, { mention: fromJS({ name: 'aaaaa' }) });
-            });
-        } catch (error) {
-            console.log(error);
-        }
-       
-        // 
-        */
-    }
-
     componentWillReceiveProps(nextProps) {
         this.setState({
             labelSuggestions: fromJS(nextProps.labelSuggestions),
@@ -78,6 +56,7 @@ class DraftEditor extends React.Component {
         }
 
         this.setState({
+            searchTerm: value,
             labelSuggestions: fromJS(filteredLabels.map(l => ({ name: l.id }))),
         });
     }
@@ -92,14 +71,22 @@ class DraftEditor extends React.Component {
 
     onChange = editorState => {
         this.setState({ editorState });
-
-        console.log(this.getRawContent());
     }
 
     onAddLabel = label => {
-        const labelObject = label.toObject();
+        const { searchTerm } = this.state;
+        let labelObject;
+        if (searchTerm) {
+            labelObject = {
+                id: label.get('name'),
+                name: searchTerm,
+            };
+            this.props.createNewLabel(labelObject);
+        } else {
+            labelObject = label.toObject();
+        }
         if (typeof this.props.onLabel === 'function') {
-            this.props.onLabel(labelObject);
+            this.props.onLabel(label.get('name'));
         }
     }
 
@@ -132,7 +119,7 @@ class DraftEditor extends React.Component {
                 .getEditorState()
                 .getCurrentContent()
                 .getEntityMap()
-                .replaceData('0', { mention: fromJS({ id: 'sasaas', name: 'designnn3' }) }); 
+                .replaceData('0', { mention: fromJS({ id: 'sasaas', name: 'designnn3' }) });
         } catch (error) {
             console.log(error);
         }
@@ -176,6 +163,7 @@ class DraftEditor extends React.Component {
 DraftEditor.propTypes = {
     // onChange: PropTypes.func,
     onLabel: PropTypes.func,
+    createNewLabel: PropTypes.func.isRequired,
     mentionSuggestions: PropTypes.array,
     labelSuggestions: PropTypes.array,
     labels: PropTypes.array,
@@ -203,4 +191,8 @@ const mapStateToProps = state => {
     };
 };
 
-export default connect(mapStateToProps, null, null, { withRef: true })(DraftEditor);
+const mapDispatchToProps = dispatch => ({
+    createNewLabel: label => dispatch({ type: 'CREATE', payload: label }),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps, null, { withRef: true })(DraftEditor);

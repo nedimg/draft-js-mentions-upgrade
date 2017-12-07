@@ -1,15 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Entity } from 'draft-js';
-import { fromJS } from 'immutable';
 
 const LabelMention = props => {
     const {
-        entityKey,
-        mention,
-        dispatch,
-        children,
+        entityKey,  // eslint-disable-line
+        mention,  // eslint-disable-line
+        dispatch,  // eslint-disable-line
+        children,  // eslint-disable-line
+        decoratedText,  // eslint-disable-line
         label,
         inUse,
         ...parentProps
@@ -19,7 +18,8 @@ const LabelMention = props => {
     };
     return (
         <span style={style} {...parentProps}>
-            {children}
+            <span style={{ display: 'none' }}>{children}</span>
+            #{label.name}
         </span>
     );
 };
@@ -30,11 +30,9 @@ LabelMention.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => {
-    const { mention, entityKey } = ownProps;
+    const { mention } = ownProps;
     const mentionId = mention.get('name');
     const label = state.labels.byId[mentionId];
-    // Entity.get(entityKey).replaceData('1', { mention: fromJS(label) });
-    console.log(Entity.get(entityKey));
     const inUse = state.labels.usedLabels.find(l => l === mentionId) !== undefined;
     return {
         label,

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 
 class LabelSuggestion extends React.Component {
+    /*
     createNewLabel = e => {
         const { mention, searchValue } = this.props;
         this.props.createNewLabel({
@@ -12,27 +13,33 @@ class LabelSuggestion extends React.Component {
         });
         this.props.onMouseDown(e);
     }
-
+    */
     renderCreateNew() {
-        const { searchValue, ...parentProps } = this.props;
-
-        delete parentProps.dispatch;
-        delete parentProps.isFocused;
+        const {
+            searchValue,
+            // createNewLabel, // eslint-disable-line
+            dispatch, // eslint-disable-line
+            isFocused, // eslint-disable-line
+            ...parentProps
+        } = this.props;
 
         return (
-            <button style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} {...parentProps} onMouseDown={this.createNewLabel}>
+            <button style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #f2f2f2' }} {...parentProps}>
                 + Create &quot;<strong>{searchValue}</strong>&quot;
             </button>
         );
     }
 
     renderLabel() {
-        const { label, theme, ...parentProps } = this.props;
-
-        delete parentProps.dispatch;
-        delete parentProps.searchValue;
-        delete parentProps.isFocused;
-        delete parentProps.createNewLabel;
+        const {
+            label,
+            dispatch,
+            searchValue,
+            isFocused,
+            // createNewLabel,
+            theme,
+            ...parentProps
+        } = this.props;
 
         return (
             <div key={label.id} {...parentProps}>
@@ -54,7 +61,7 @@ class LabelSuggestion extends React.Component {
 }
 
 LabelSuggestion.propTypes = {
-    createNewLabel: PropTypes.func.isRequired,
+    // createNewLabel: PropTypes.func.isRequired,
     onMouseDown: PropTypes.func.isRequired,
     mention: PropTypes.object.isRequired,
     theme: PropTypes.object.isRequired,
@@ -76,10 +83,10 @@ const mapStateToProps = (state, ownProps) => {
         label,
     };
 };
-
+/*
 const mapDispatchToProps = dispatch => ({
     createNewLabel: label => dispatch({ type: 'CREATE', payload: label }),
 });
+*/
 
-
-export default connect(mapStateToProps, mapDispatchToProps)(LabelSuggestion);
+export default connect(mapStateToProps)(LabelSuggestion);
